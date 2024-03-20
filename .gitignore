@@ -1,3 +1,4 @@
 cellfaceMultistreamSupport/
 .ipynb_checkpoints/
 *.log
+**/__pycache__/
