@@ -442,34 +442,3 @@ def create_tensors_250_per_celltype(path_to_seg_file, channels, tensor_path, sha
             del tensorTrain 
             del labelsTrain 
             gc.collect() 
-    
-# OUTSOURCED STUFF
-"""
-# function to create tensors but no label files - e.g. for whc_healthy files!
-def create_tensors_no_labels_no_filering(path, channels, path_to_save_tensors_to, size_of_each_tensor,shape=(48,48)):
-    delete_files_in_folder(path_to_save_tensors_to)
-    print(f"Creating tensors for {path} ")
-    with Container(path, 'r') as seg:
-        channel = []
-        for i, c in enumerate(channels):
-            images = getattr(seg.content, c).images
-            selected_images = images[:]
-            channel.append(selected_images)
-        nameIndex = 0
-        for i in range(0, len(selected_images), size_of_each_tensor):
-            tensor_list = []
-            for c in channel:
-                batch_c = c[i:i+size_of_each_tensor]
-                batch_c = np.tile(batch_c[..., np.newaxis], 1)
-                batch_c = tf.image.resize(batch_c, size=shape)
-                batch_c = tf.squeeze(batch_c)
-                tensor_list.append(batch_c)
-            batch_tensor = np.stack(tensor_list, axis=-1)                                                                              
-            tensor_filename = f'tensor_{nameIndex}.npy'
-            np.save(os.path.join(path_to_save_tensors_to, tensor_filename), batch_tensor)
-            # Clear memory
-            del batch_tensor
-            gc.collect()
-            nameIndex = nameIndex + 1
-            
-"""
