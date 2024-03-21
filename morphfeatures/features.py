@@ -1,5 +1,4 @@
 from shiftscope.cellfaceMultistreamSupport.cellface.storage.container import Container
-from shiftscope.morphs import get_mf
 from dask.diagnostics import ProgressBar
 import pickle
 from skimage.measure import label, regionprops
@@ -105,45 +104,3 @@ def calculate_morph_features(paths: List[str], indices_paths: List[str] = None, 
         features_dict[feature_name] = all_features[feature_name]
     #print(list(all_features.dtype.names))
     return features_dict, total_cells
-
-# function to calculate morphological features of a dataset
-def calculate_morphological_features_paths_withIndicesOUTDATED(paths: List[str], indices_paths: List[str] = None, concrete_indices = List[List[int]]):
-    all_features = []
-    total_cells = 0
-    for index,path in enumerate(paths):
-        with Container(path, 'r') as seg:
-            if indices_paths is not None:
-                print("Using the indices_paths from the path to the indices_paths file provided")
-                with open(indices_paths[index], "rb") as f:
-                    myindices = pickle.load(f)
-                print(f"length of filtered indices is: {len(myindices)}")
-                # Filter phase images and masks based on provided indices
-                phase_images = np.array([seg.content.phase.images[idx] for idx in myindices], dtype=np.float32)
-                masks = np.array([seg.content.mask.images[idx] for idx in myindices], dtype=np.uint8)    
-            else:
-                if concrete_indices != []:
-                    print("Using the concrete indices provided")
-                    myindices = concrete_indices
-                    phase_images = np.array([seg.content.phase.images[idx] for idx in myindices], dtype=np.float32)
-                    masks = np.array([seg.content.mask.images[idx] for idx in myindices], dtype=np.uint8)
-                else:
-                    print("no indices used - using all images without filter indices")
-                    # Use all images if no indices provided
-                    phase_images = np.array(seg.content.phase.images[:], dtype=np.float32)
-                    masks = np.array(seg.content.mask.images[:], dtype=np.uint8)
-
-            num_cells = len(phase_images)
-
-        valid_pairs = [(img, msk) for img, msk in zip(phase_images, masks) if img.shape == (48, 48) and msk.shape == (48, 48)]
-        delayed_results = [delayed(get_mf)(image, mask) for image, mask in valid_pairs]
-
-        with ProgressBar():
-            results = dask.compute(*delayed_results)
-
-        # Store results in list
-        all_features.extend(results)
-        total_cells += num_cells
-
-    # Convert list to numpy array
-    all_features = np.concatenate(all_features)
-    return all_features, total_cells

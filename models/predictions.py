@@ -10,8 +10,8 @@ import torch
 from torch.nn.functional import softmax
 
 
-# stuff to make predictions...
-def predict(model, dataloader_with_data_to_predict_on):
+# function to make prediction with a model and a dataloader
+def predict(model, dataloader):
     print(f"Predicting with the provided trained model on the cells from the provided dataloader \n {Colors.BLUE}will return array of predicted percentages in form [lym%,mon%,eos%,neu%]{Colors.RESET}")
     device = "cpu"
     model.eval()
@@ -20,9 +20,8 @@ def predict(model, dataloader_with_data_to_predict_on):
     actual_labels = []
 
     with torch.no_grad():  # Disable gradient computation
-        ###
         # Store predictions and actual labels
-        for data in dataloader_with_data_to_predict_on:
+        for data in dataloader:
             if len(data) == 2:
                 # DataLoader returns inputs and labels
                 inputs, labels = data
@@ -59,14 +58,6 @@ def predict(model, dataloader_with_data_to_predict_on):
         print(f"Recall: {recall}")
         print(f"F1 Score: {f1}")
         print(f"Confusion Matrix:\n{conf_matrix}")
-        ###
-        
-       # for inputs in dataloader_with_data_to_predict_on:
-        #    inputs = inputs.to(device)  # Move the data to the CPU
-         #   outputs = model(inputs)  # Forward pass
-          #  _, predicted = torch.max(outputs, 1)  # Get the index of the max log-probability as the prediction
-           # predictions.extend(predicted.cpu().numpy())  # Store predictions
-    # Count the occurrences of each label
     label_counts = Counter(predictions)
 
     # Calculate the percentage of each cell type
@@ -77,8 +68,8 @@ def predict(model, dataloader_with_data_to_predict_on):
     return predicted_percentages
 
 
-# stuff to make predictions... including DEBRIS class
-def predictDEBRIS(model, dataloader_with_data_to_predict_on):
+# function to make predictions... including DEBRIS class
+def predictDEBRIS(model, dataloader):
     print(f"Predicting with the provided trained model on the cells from the provided dataloader \n {Colors.BLUE}will return array of predicted percentages in form [lym%,mon%,eos%,neu%,debris%]{Colors.RESET}")
     device = "cpu"
     model.eval()
@@ -87,7 +78,7 @@ def predictDEBRIS(model, dataloader_with_data_to_predict_on):
     actual_labels = []
     with torch.no_grad():  # Disable gradient computation
         # Store predictions and actual labels
-        for data in dataloader_with_data_to_predict_on:
+        for data in dataloader:
             if len(data) == 2:
                 # DataLoader returns inputs and labels
                 inputs, labels = data
