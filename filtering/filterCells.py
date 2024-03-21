@@ -5,7 +5,7 @@ import dask
 from dask import delayed
 from dask.diagnostics import ProgressBar
 import numpy as np
-from tqdm import tqdm
+#from tqdm import tqdm
 import os
 import pickle
 
@@ -37,9 +37,8 @@ def check_within_intervals(value, intervals):
     return any(interval[0] <= value <= interval[1] for interval in intervals)
 
 # function to filter a container (with the option to use pre defined filter options and saving the filter indices to a pickle file & slicing the indices)
-def filter_container(cellPath, use_predefined_filter_options, filter_options=[], saveIndices = True, path_to_save_filter_options_to="",  slicer=0):
+def filter_container(cellPath, use_predefined_filter_options, filter_options=[], saveIndices = False, path_to_save_filter_options_to="",  slicer=0):
     if not filter_options:
-        print(f"{Colors.RED}Using predefined filter options for {use_predefined_filter_options}{Colors.RESET}")
         if use_predefined_filter_options == "lym":
             filter_options = filter_options_lymphocytes
         elif use_predefined_filter_options == "mon":
@@ -55,9 +54,6 @@ def filter_container(cellPath, use_predefined_filter_options, filter_options=[],
             filter_options_morph[key] = val
         elif key in glcm:
             filter_options_glcm[key] = val
-    print(filter_options_glcm)
-    print(filter_options_morph)
-    print(f"Filtering container in path {Colors.BLUE}{cellPath}{Colors.RESET} \n with {Colors.RED} glcm filter options {filter_options_glcm} and morph filter options {filter_options_morph} {Colors.RESET}")
     delayed_features = []  # Initialize an empty list to store delayed objects
     morph_feature_extractor = MorphologicalFeatureExtraction()
     delayed_features_glcm = []
@@ -79,22 +75,21 @@ def filter_container(cellPath, use_predefined_filter_options, filter_options=[],
             results_glcm = dask.compute(*delayed_features_glcm)
         glcm_features = np.concatenate(results_glcm)
         filtered_indices = []
-        for i, feature in enumerate(tqdm(morphological_features, desc=f"Filtering dataset")): 
+        for i, feature in enumerate(morphological_features): 
             if all(check_within_intervals(feature[key], filter_options[key]) for key in filter_options_morph):
                 filtered_indices.append(i)
         filtered_indices_glcm = []
-        for i, feature in enumerate(tqdm(glcm_features, desc=f"Filtering dataset glcm")): 
+        for i, feature in enumerate(glcm_features): 
             if all(check_within_intervals(feature[key], filter_options[key]) for key in filter_options_glcm):
                 filtered_indices_glcm.append(i)
         filter_indices = [i for i in filtered_indices if i in filtered_indices_glcm]
-        print(f"length of filter_indices before slicing is {len(filter_indices)}")
         if slicer != 0:
-            print(f"Additionally slicing the indices to : :{slicer}")
             filter_indices = filter_indices[:slicer]
         if saveIndices == True:
-            print(f"Saving indices to file: {path_to_save_filter_options_to}")
             with open(path_to_save_filter_options_to, 'wb') as f:
                 pickle.dump(filter_indices, f)
+            print(f"""----> Path {Colors.RED}{cellPath}{Colors.RESET}\n was filtered with filter options \n----> {Colors.BLUE}{filter_options}{Colors.RESET}\n----> the filter indices have been saved to {Colors.GREEN}{path_to_save_filter_options_to}{Colors.RESET}""")
             return filter_indices, path_to_save_filter_options_to
         else:
+            print(f"""----> Path {Colors.RED}{cellPath}{Colors.RESET}\n was filtered with filter options \n----> {Colors.BLUE}{filter_options}{Colors.RESET}""")
             return filter_indices
