@@ -2,3 +2,5 @@ cellfaceMultistreamSupport/
 .ipynb_checkpoints/
 *.log
 **/__pycache__/
+colormaps.py
+
