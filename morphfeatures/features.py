@@ -60,14 +60,14 @@ def calculate_glcm_features(paths: List[str], indices_paths: List[str] = None, c
 # function to calculate morph features ['area', 'aspect_ratio', 'biconcavity', 'center_x', 'center_y', 'circularity', 'density', 'discocyte_error',
 # 'equivalent_diameter', 'height', 'mass_center_shift', 'mass_center_x', 'mass_center_y', 'optical_height_max', 'optical_height_min', 'optical_height_mean', 
 # 'optical_height_std', 'perimeter', 'radius_max', 'radius_min', 'radius_mean', 'radius_std', 'solidity', 'steepness', 'volume', 'width']
-def calculate_morph_features(paths: List[str], indices_paths: List[str] = None, concrete_indices = List[List[int]]):
+def calculate_morph_features(paths: List[str], indices_paths: List[str] = [], concrete_indices: List[List[int]]=[]):
     all_features = []
     total_cells = 0
     morph_feature_extractor = MorphologicalFeatureExtraction()
     delayed_results = []
     for index, path in enumerate(paths):
         with Container(path, 'r') as seg:
-            if indices_paths is not None:
+            if indices_paths:
                 print("Using the indices_paths from the path to the indices_paths file provided")
                 with open(indices_paths[index], "rb") as f:
                     myindices = pickle.load(f)
@@ -75,17 +75,16 @@ def calculate_morph_features(paths: List[str], indices_paths: List[str] = None, 
                 # Filter phase images and masks based on provided indices
                 phase_images = np.array([seg.content.phase.images[idx] for idx in myindices], dtype=np.float32)
                 masks = np.array([seg.content.mask.images[idx] for idx in myindices], dtype=np.uint8)    
+            elif concrete_indices:
+                print("Using the concrete indices provided")
+                myindices = concrete_indices[index]
+                phase_images = np.array([seg.content.phase.images[idx] for idx in myindices], dtype=np.float32)
+                masks = np.array([seg.content.mask.images[idx] for idx in myindices], dtype=np.uint8)
             else:
-                if concrete_indices != []:
-                    print("Using the concrete indices provided")
-                    myindices = concrete_indices[index]
-                    phase_images = np.array([seg.content.phase.images[idx] for idx in myindices], dtype=np.float32)
-                    masks = np.array([seg.content.mask.images[idx] for idx in myindices], dtype=np.uint8)
-                else:
-                    print("no indices used - using all images without filter indices")
-                    # Use all images if no indices provided
-                    phase_images = np.array(seg.content.phase.images[:], dtype=np.float32)
-                    masks = np.array(seg.content.mask.images[:], dtype=np.uint8)
+                print("no indices used - using all images without filter indices")
+                # Use all images if no indices provided
+                phase_images = np.array(seg.content.phase.images[:], dtype=np.float32)
+                masks = np.array(seg.content.mask.images[:], dtype=np.uint8)
 
             num_cells = len(phase_images)
             for img, msk in zip(phase_images, masks):
