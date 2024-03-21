@@ -371,8 +371,8 @@ cell_file_filter_indices = {
     
 }
 
-
-cell_file_filter_indices_UPDATED_FEATURES = {
+# the updated paths to the filter indices
+cell_file_filter_indices_paths = {
     "munich": 
         {
            "donorA": 
