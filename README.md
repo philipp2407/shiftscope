@@ -2,7 +2,7 @@
 
 This repository contains modules developed to investigate domain shifts in holographic images of leukocytes. These modules were created during my time as a research assistant in Singapore. Each module is designed to function independently or in conjunction with others, providing a flexible and comprehensive toolkit for cell image analysis and machine learning. 
 
-__Note:__ Be aware that the imports from * *'cellfaceMultistreamSupport'* * won't work as I am not able to share this module publicly.
+__Note:__ Be aware that the imports from __*'cellfaceMultistreamSupport'*__ won't work as I am not able to share this module publicly.
 
 ### Modules Overview
 
